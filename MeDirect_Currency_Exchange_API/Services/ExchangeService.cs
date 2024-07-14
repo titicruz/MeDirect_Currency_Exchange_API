@@ -12,7 +12,7 @@ namespace MeDirect_Currency_Exchange_API.Services {
             _cacheService = cacheService;
         }
 
-        public Task<Trade> CreateTradeAsync(TradeRequest tradeRequest) {
+        public async Task<Trade> CreateTradeAsync(TradeRequest tradeRequest) {
             throw new NotImplementedException();
         }
 
