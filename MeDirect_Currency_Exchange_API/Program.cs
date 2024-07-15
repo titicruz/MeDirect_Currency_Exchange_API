@@ -1,4 +1,5 @@
 using MeDirect_Currency_Exchange_API.Data;
+using MeDirect_Currency_Exchange_API.Data.Repositories;
 using MeDirect_Currency_Exchange_API.Interfaces;
 using MeDirect_Currency_Exchange_API.Services;
 using Microsoft.EntityFrameworkCore;
@@ -22,6 +23,8 @@ if(Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development"
 }
 builder.Services.AddSingleton<ICacheService, CacheService>();
 builder.Services.AddScoped<IExchangeService, ExchangeService>();
+builder.Services.AddScoped<ITradeRepository, TradeRepository>();
+builder.Services.AddScoped<IClientRepository, ClientRepository>();
 
 builder.Services.AddDbContext<Currency_Exchange_API_Context>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("DBConnection")));

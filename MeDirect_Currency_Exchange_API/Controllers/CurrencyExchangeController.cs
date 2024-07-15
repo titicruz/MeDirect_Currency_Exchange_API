@@ -35,7 +35,6 @@ namespace MeDirect_Currency_Exchange_API.Controllers {
             }
         }
 
-        // POST api/exchange/trade
         [HttpPost("trade")]
         public async Task<IActionResult> CreateTradeAsync([FromBody] TradeRequest tradeRequest) {
             if(tradeRequest == null) {
@@ -52,12 +51,11 @@ namespace MeDirect_Currency_Exchange_API.Controllers {
                 if(trade == null) {
                     return BadRequest("Trade creation failed.");
                 }
-
-                return CreatedAtAction(nameof(CreateTradeAsync), new { id = trade.ID }, trade);
+                return Ok(trade.ExchangedAmount);
             }
             catch(ApiException ex) {
                 // Handle known API exceptions
-                return StatusCode(500, new { message = ex.Message });
+                return StatusCode(ex.ErrorCode, new { message = $"code:{ex.ErrorCode} message:{ex.Message}"});
             }
             catch(Exception ex) {
                 // Handle other unexpected exceptions

@@ -30,9 +30,13 @@ namespace MeDirect_Currency_Exchange_API.Data {
                     .IsRequired()
                     .HasColumnType("decimal(18, 2)");
 
-                entity.Property(t => t.ExchangeRate)
+                entity.Property(t => t.Rate)
                     .IsRequired()
                     .HasColumnType("decimal(18, 6)");
+
+                entity.Property(t => t.ExchangedAmount)
+                    .IsRequired()
+                    .HasColumnType("decimal(18, 2)");
 
                 entity.Property(t => t.Dt_Create)
                     .IsRequired()

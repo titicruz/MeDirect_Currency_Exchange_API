@@ -12,7 +12,8 @@ namespace MeDirect_Currency_Exchange_API.Data.Models {
         public string FromCurrency { get; set; }
         public string ToCurrency { get; set; }
         public decimal Amount { get; set; }
-        public decimal ExchangeRate { get; set; }
+        public decimal Rate { get; set; }
+        public decimal ExchangedAmount { get; set; }
         public DateTime Dt_Create { get; set; }
     }
 }

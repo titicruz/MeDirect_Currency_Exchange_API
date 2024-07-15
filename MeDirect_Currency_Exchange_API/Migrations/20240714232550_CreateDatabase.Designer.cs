@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace MeDirect_Currency_Exchange_API.Migrations
 {
     [DbContext(typeof(Currency_Exchange_API_Context))]
-    [Migration("20240714102256_CreateDatabase")]
+    [Migration("20240714232550_CreateDatabase")]
     partial class CreateDatabase
     {
         /// <inheritdoc />
@@ -20,7 +20,7 @@ namespace MeDirect_Currency_Exchange_API.Migrations
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "8.0.7");
 
-            modelBuilder.Entity("MeDirect_Currency_Exchange_API.Data.Tables.Client", b =>
+            modelBuilder.Entity("MeDirect_Currency_Exchange_API.Data.Models.Client", b =>
                 {
                     b.Property<int>("ID")
                         .ValueGeneratedOnAdd()
@@ -42,7 +42,7 @@ namespace MeDirect_Currency_Exchange_API.Migrations
                     b.ToTable("Client");
                 });
 
-            modelBuilder.Entity("MeDirect_Currency_Exchange_API.Data.Tables.Trade", b =>
+            modelBuilder.Entity("MeDirect_Currency_Exchange_API.Data.Models.Trade", b =>
                 {
                     b.Property<int>("ID")
                         .ValueGeneratedOnAdd()
@@ -56,8 +56,8 @@ namespace MeDirect_Currency_Exchange_API.Migrations
                         .HasColumnType("TEXT")
                         .HasDefaultValueSql("GETDATE()");
 
-                    b.Property<decimal>("ExchangeRate")
-                        .HasColumnType("decimal(18, 6)");
+                    b.Property<decimal>("ExchangedAmount")
+                        .HasColumnType("decimal(18, 2)");
 
                     b.Property<string>("FromCurrency")
                         .IsRequired()
@@ -66,6 +66,9 @@ namespace MeDirect_Currency_Exchange_API.Migrations
 
                     b.Property<int>("ID_Client")
                         .HasColumnType("INTEGER");
+
+                    b.Property<decimal>("Rate")
+                        .HasColumnType("decimal(18, 6)");
 
                     b.Property<string>("ToCurrency")
                         .IsRequired()
@@ -81,9 +84,9 @@ namespace MeDirect_Currency_Exchange_API.Migrations
                     b.ToTable("Trade");
                 });
 
-            modelBuilder.Entity("MeDirect_Currency_Exchange_API.Data.Tables.Trade", b =>
+            modelBuilder.Entity("MeDirect_Currency_Exchange_API.Data.Models.Trade", b =>
                 {
-                    b.HasOne("MeDirect_Currency_Exchange_API.Data.Tables.Client", "Client")
+                    b.HasOne("MeDirect_Currency_Exchange_API.Data.Models.Client", "Client")
                         .WithMany("Trades")
                         .HasForeignKey("ID_Client")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -93,7 +96,7 @@ namespace MeDirect_Currency_Exchange_API.Migrations
                     b.Navigation("Client");
                 });
 
-            modelBuilder.Entity("MeDirect_Currency_Exchange_API.Data.Tables.Client", b =>
+            modelBuilder.Entity("MeDirect_Currency_Exchange_API.Data.Models.Client", b =>
                 {
                     b.Navigation("Trades");
                 });

@@ -35,7 +35,8 @@ namespace MeDirect_Currency_Exchange_API.Migrations
                     FromCurrency = table.Column<string>(type: "TEXT", maxLength: 3, nullable: false),
                     ToCurrency = table.Column<string>(type: "TEXT", maxLength: 3, nullable: false),
                     Amount = table.Column<decimal>(type: "decimal(18, 2)", nullable: false),
-                    ExchangeRate = table.Column<decimal>(type: "decimal(18, 6)", nullable: false),
+                    Rate = table.Column<decimal>(type: "decimal(18, 6)", nullable: false),
+                    ExchangedAmount = table.Column<decimal>(type: "decimal(18, 2)", nullable: false),
                     Dt_Create = table.Column<DateTime>(type: "TEXT", nullable: false, defaultValueSql: "GETDATE()")
                 },
                 constraints: table =>
