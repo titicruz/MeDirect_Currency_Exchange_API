@@ -12,7 +12,7 @@ namespace MeDirect_Currency_Exchange_API.Controllers {
         public CurrencyExchangeController(IExchangeService exchangeService) {
             _exchangeService = exchangeService;
         }
-        [HttpGet("rate")]
+        [HttpGet("GetRate")]
         public async Task<IActionResult> GetRateAsync([FromQuery] string fromCurrency, [FromQuery] string toCurrency) {
             if(string.IsNullOrEmpty(fromCurrency) || string.IsNullOrEmpty(toCurrency)) {
                 return BadRequest("Both 'fromCurrency' and 'toCurrency' query parameters are required.");
@@ -35,7 +35,7 @@ namespace MeDirect_Currency_Exchange_API.Controllers {
             }
         }
 
-        [HttpPost("trade")]
+        [HttpPost("ExchangeTrade")]
         public async Task<IActionResult> CreateTradeAsync([FromBody] TradeRequest tradeRequest) {
             if(tradeRequest == null) {
                 return BadRequest("Trade request cannot be null.");
@@ -55,7 +55,7 @@ namespace MeDirect_Currency_Exchange_API.Controllers {
             }
             catch(ApiException ex) {
                 // Handle known API exceptions
-                return StatusCode(ex.ErrorCode, new { message = $"code:{ex.ErrorCode} message:{ex.Message}"});
+                return StatusCode(ex.ErrorCode, new { message = $"code:{ex.ErrorCode} message:{ex.Message}" });
             }
             catch(Exception ex) {
                 // Handle other unexpected exceptions

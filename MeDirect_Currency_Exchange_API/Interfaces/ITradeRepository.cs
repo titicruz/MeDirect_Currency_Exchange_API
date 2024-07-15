@@ -12,6 +12,10 @@ namespace MeDirect_Currency_Exchange_API.Interfaces {
         /// <param name="startDate">The starting date of the search.</param>
         /// <param name="endDate">The end date of the search, ignored if null</param>
         Task<List<Trade>> GetTradesForClientBetweenDatesAsync(int id_Client, DateTime startDate, DateTime? endDate);
+        /// <summary>
+        /// Gets All trades from a Client by ID.
+        /// </summary>
+        /// <param name="id_Client">Client ID</param>
         Task<List<Trade>> GetAllTradesForClientAsync(int id_Client);
     }
 }
