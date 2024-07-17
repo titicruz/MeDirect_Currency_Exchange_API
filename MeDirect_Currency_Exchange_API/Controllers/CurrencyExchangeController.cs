@@ -8,9 +8,11 @@ namespace MeDirect_Currency_Exchange_API.Controllers {
     [ApiController]
     public class CurrencyExchangeController : ControllerBase {
         private readonly IExchangeService _exchangeService;
+        private readonly ILogger<CurrencyExchangeController> _logger;
 
-        public CurrencyExchangeController(IExchangeService exchangeService) {
+        public CurrencyExchangeController(IExchangeService exchangeService, ILogger<CurrencyExchangeController> logger) {
             _exchangeService = exchangeService;
+            _logger = logger;
         }
         [HttpGet("GetRate")]
         public async Task<IActionResult> GetRateAsync([FromQuery] string fromCurrency, [FromQuery] string toCurrency) {
@@ -31,7 +33,7 @@ namespace MeDirect_Currency_Exchange_API.Controllers {
                 return StatusCode(500, new { message = ex.Message });
             }
             catch(Exception ex) {
-                return StatusCode(500, new { message = "An unexpected error occurred." });
+                return StatusCode(500, new { message = ex.Message });
             }
         }
 
@@ -64,7 +66,7 @@ namespace MeDirect_Currency_Exchange_API.Controllers {
             }
             catch(Exception ex) {
                 // Handle other unexpected exceptions
-                return StatusCode(500, new { message = "An unexpected error occurred." });
+                return StatusCode(500, new { message = ex.Message });
             }
         }
     }

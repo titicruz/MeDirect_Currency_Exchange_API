@@ -16,7 +16,6 @@ namespace MeDirect_Currency_Exchange_API.Interfaces {
         /// <summary>
         /// Gets All Clients.
         /// </summary>
-        /// <param name="id_Client">Client ID</param>
         Task<List<Client>> GetAllClientsAsync();
         /// <summary>
         /// Updates a Clients.

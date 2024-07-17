@@ -2,36 +2,37 @@
 using MeDirect_Currency_Exchange_API.Interfaces;
 using MeDirect_Currency_Exchange_API.Models;
 using Newtonsoft.Json;
-using Serilog;
 
 namespace MeDirect_Currency_Exchange_API.Services {
     public class FixerRateProviderClient : IRateProviderClient {
         private readonly HttpClient _httpClient;
         private readonly string _apiKey;
         private readonly string _baseUrl;
-        public FixerRateProviderClient(HttpClient httpClient, IConfiguration configuration) {
+        private readonly ILogger<FixerRateProviderClient> _logger;
+        public FixerRateProviderClient(HttpClient httpClient, IConfiguration configuration, ILogger<FixerRateProviderClient> logger) {
             _httpClient = httpClient;
             _apiKey = configuration["FixerApi:ApiKey"];
             _baseUrl = configuration["FixerApi:BaseUrl"];
+            _logger = logger;
         }
         public async Task<CurrencyRate> GetRateAsync(string currency) {
-            Log.Information($"Getting Rates from Provider for {currency}");
+            _logger.LogInformation($"Getting Rates from Provider for {currency}");
             var url = $"{_baseUrl}/latest?access_key={_apiKey}&base={currency}";
-            Log.Debug("Constructed URL: {Url}", url);
+            _logger.LogDebug("Constructed URL: {Url}", url);
             HttpResponseMessage response;
             try {
                 response = await _httpClient.GetAsync(url);
             }
             catch(Exception ex) {
-                Log.Error(ex, "Error occurred while sending request to the Provider for the currency {Currency}", currency);
+                _logger.LogError(ex, "Error occurred while sending request to the Provider for the currency {Currency}", currency);
                 throw new ApiException(1000, "Error on requesting", "Internal Error");
             }
             if(!response.IsSuccessStatusCode) {
-                Log.Warning("Received unsuccessful status code {StatusCode} from the Provider API for currency {Currency}", response.StatusCode, currency);
+                _logger.LogWarning("Received unsuccessful status code {StatusCode} from the Provider API for currency {Currency}", response.StatusCode, currency);
                 throw new ApiException(1000, "Error on requesting", "API Error");
             }
             var content = await response.Content.ReadAsStringAsync();
-            Log.Debug("Received response content: {Content}", content);
+            _logger.LogDebug("Received response content: {Content}", content);
             FixerResponse result = JsonConvert.DeserializeObject<FixerResponse>(content);
 
             if(result == null)
@@ -44,7 +45,7 @@ namespace MeDirect_Currency_Exchange_API.Services {
                 Rates = result.Rates,
                 FetchedAt = DateTime.UtcNow
             };
-            Log.Information("Rates for currency {Currency}: {Rates}", currency, rate.Rates);
+            _logger.LogInformation("Rates for currency {Currency}: {Rates}", currency, rate.Rates);
             return rate;
         }
         private class FixerResponse {

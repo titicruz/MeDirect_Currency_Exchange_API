@@ -3,7 +3,6 @@ using MeDirect_Currency_Exchange_API.Exceptions;
 using MeDirect_Currency_Exchange_API.Interfaces;
 using MeDirect_Currency_Exchange_API.Models;
 using MeDirect_Currency_Exchange_API.Models.DTOs;
-using Serilog;
 
 namespace MeDirect_Currency_Exchange_API.Services {
     public class ExchangeService : IExchangeService {
@@ -11,33 +10,41 @@ namespace MeDirect_Currency_Exchange_API.Services {
         private ITradeRepository _tradeRepository;
         private readonly ICacheService _cacheService;
         private IClientRepository _clientRepository;
-        public ExchangeService(IRateProviderClient rateProviderClient, ICacheService cacheService, ITradeRepository tradeRepository, IClientRepository clientRepository) {
+        private readonly ILogger<ExchangeService> _logger;
+        private readonly int _hourLimit = 1;
+        private readonly int _tradeLimit = 10;
+        private readonly int _cacheTime = 30;
+        public ExchangeService(IRateProviderClient rateProviderClient, ICacheService cacheService, ITradeRepository tradeRepository, IClientRepository clientRepository, ILogger<ExchangeService> logger, IConfiguration configuration) {
             _rateClient = rateProviderClient;
             _cacheService = cacheService;
             _tradeRepository = tradeRepository;
             _clientRepository = clientRepository;
+            _logger = logger;
+            _cacheTime = configuration.GetValue<int>("Configurations:CacheTime");
+            _tradeLimit = configuration.GetValue<int>("Configurations:TradeLimit");
+            _hourLimit = configuration.GetValue<int>("Configurations:HourLimit");
         }
 
         public async Task<Trade> CreateTradeAsync(TradeRequest tradeRequest) {
-            Log.Information("Received request to create trade: {@TradeRequest}", tradeRequest);
+            _logger.LogInformation("Received request to create trade: {@TradeRequest}", tradeRequest);
             var client = await _clientRepository.GetClientByIdAsync(tradeRequest.ID_Client);
-            if (client == null) {
-                Log.Warning("Client {ClientId} doesn' excists.", tradeRequest.ID_Client);
+            if(client == null) {
+                _logger.LogWarning("Client {ClientId} doesn't exists.", tradeRequest.ID_Client);
                 throw new ApiException(404, "The Client doesn't exists", "Not found");
             }
-            var tradesInLastHour = await _tradeRepository.GetTradesForClientBetweenDatesAsync(
+            var tradesInLastHour = await _tradeRepository.GetCountTradesForClientBetweenDatesAsync(
                 tradeRequest.ID_Client,
-                DateTime.UtcNow.AddHours(-1),
+                DateTime.UtcNow.AddHours(_hourLimit * -1),
                 null
             );
 
-            if(tradesInLastHour.Count() >= 10) {
-                Log.Warning("Client {ClientId} has reached the maximum limit of 10 trades per hour.", tradeRequest.ID_Client);
-                throw new ApiException(429, "Reached the maximum limit of 10 trades per hour.","Limit Error");
+            if(tradesInLastHour >= _tradeLimit) {
+                _logger.LogWarning("Client {ClientId} has reached the maximum limit of 10 trades per hour.", tradeRequest.ID_Client);
+                throw new ApiException(429, "Reached the maximum limit of 10 trades per hour.", "Limit Error");
             }
             var rate = await GetRateAsync(tradeRequest.FromCurrency, tradeRequest.ToCurrency);
             if(rate == null) {
-                Log.Warning("Exchange rate not found for {FromCurrency} to {ToCurrency}", tradeRequest.FromCurrency, tradeRequest.ToCurrency);
+                _logger.LogWarning("Exchange rate not found for {FromCurrency} to {ToCurrency}", tradeRequest.FromCurrency, tradeRequest.ToCurrency);
                 throw new ApiException(404, "Exchange rate not found", "Not Found");
             }
             var trade = new Trade {
@@ -52,36 +59,32 @@ namespace MeDirect_Currency_Exchange_API.Services {
             // Calculate exchanged amount
             trade.ExchangedAmount = trade.Amount * trade.Rate;
             await _tradeRepository.AddTradeAsync(trade);
-            Log.Information("Trade created successfully: {@Trade}", trade);
+            _logger.LogInformation("Trade created successfully: {@Trade}", trade);
             return trade;
         }
 
         public async Task<decimal?> GetRateAsync(string fromCurrency, string toCurrency) {
-            Log.Information("Getting exchange rate from {FromCurrency} to {ToCurrency}", fromCurrency, toCurrency);
+            _logger.LogInformation("Getting exchange rate from {FromCurrency} to {ToCurrency}", fromCurrency, toCurrency);
             // Check cache first
             var cacheKey = $"{fromCurrency}";
             var cachedRates = _cacheService.Get<CurrencyRate>(cacheKey);
             if(cachedRates != null) {
                 if(cachedRates.Rates.TryGetValue(toCurrency, out var cachedRate)) {
-                    Log.Information("Exchange rate found in Cache {Rate}", cachedRate);
+                    _logger.LogInformation("Exchange rate found in Cache {Rate}", cachedRate);
                     return cachedRate;
                 }
             }
             // Get rate from provider
             var rateProvider = await _rateClient.GetRateAsync(fromCurrency);
-            var currencyRate = new CurrencyRate {
-                BaseCurrency = fromCurrency,
-                Rates = rateProvider.Rates,
-                FetchedAt = DateTime.UtcNow
-            };
-            _cacheService.Set(cacheKey, rateProvider, TimeSpan.FromMinutes(30));
+
+            _cacheService.Set(cacheKey, rateProvider, TimeSpan.FromMinutes(_cacheTime));
             if(rateProvider.Rates != null) {
                 if(rateProvider.Rates.TryGetValue(toCurrency, out var providerRate)) {
-                    Log.Information("Exchange rate from provider: {Rate}", providerRate);
+                    _logger.LogInformation("Exchange rate from provider: {Rate}", providerRate);
                     return providerRate;
                 }
             }
-            Log.Warning("Rate from {FromCurrency} to {ToCurrency} not found", fromCurrency, toCurrency);
+            _logger.LogWarning("Rate from {FromCurrency} to {ToCurrency} not found", fromCurrency, toCurrency);
             return null;
         }
     }

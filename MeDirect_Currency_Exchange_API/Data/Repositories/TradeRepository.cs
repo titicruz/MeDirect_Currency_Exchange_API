@@ -14,11 +14,19 @@ namespace MeDirect_Currency_Exchange_API.Data.Repositories {
         }
 
         public async Task<List<Trade>> GetAllTradesForClientAsync(int id_Client) {
-            return await _context.Trades.Where(t=> t.ID_Client == id_Client).ToListAsync();
+            return await _context.Trades.Where(t => t.ID_Client == id_Client).ToListAsync();
         }
-        
+
+        public async Task<int> GetCountTradesForClientBetweenDatesAsync(int id_Client, DateTime startDate, DateTime? endDate) {
+            if(endDate.HasValue) {
+                return await _context.Trades.CountAsync(t => t.ID_Client == id_Client && t.Dt_Create >= startDate && t.Dt_Create <= endDate);
+            } else {
+                return await _context.Trades.CountAsync(t => t.ID_Client == id_Client && t.Dt_Create >= startDate);
+            }
+        }
+
         public async Task<List<Trade>> GetTradesForClientBetweenDatesAsync(int id_Client, DateTime startDate, DateTime? endDate = null) {
-            if (endDate.HasValue) {
+            if(endDate.HasValue) {
                 return await _context.Trades.Where(t => t.ID_Client == id_Client && t.Dt_Create >= startDate && t.Dt_Create <= endDate).ToListAsync();
             } else {
                 return await _context.Trades.Where(t => t.ID_Client == id_Client && t.Dt_Create >= startDate).ToListAsync();
