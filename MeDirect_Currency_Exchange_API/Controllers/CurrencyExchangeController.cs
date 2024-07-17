@@ -37,10 +37,6 @@ namespace MeDirect_Currency_Exchange_API.Controllers {
 
         [HttpPost("ExchangeTrade")]
         public async Task<IActionResult> CreateTradeAsync([FromBody] TradeRequest tradeRequest) {
-            if(tradeRequest == null) {
-                return BadRequest("Trade request cannot be null.");
-            }
-
             if(!ModelState.IsValid) {
                 return BadRequest(ModelState);
             }
@@ -51,7 +47,16 @@ namespace MeDirect_Currency_Exchange_API.Controllers {
                 if(trade == null) {
                     return BadRequest("Trade creation failed.");
                 }
-                return Ok(trade.ExchangedAmount);
+                TradeOutput tradeOutput = new TradeOutput() {
+                    ID = trade.ID,
+                    ID_Client = trade.ID_Client,
+                    FromCurrency = trade.FromCurrency,
+                    ToCurrency = trade.ToCurrency,
+                    Amount = trade.Amount,
+                    ExchangedAmount = trade.ExchangedAmount,
+                    Rate = trade.Rate
+                };
+                return Ok(tradeOutput);
             }
             catch(ApiException ex) {
                 // Handle known API exceptions
