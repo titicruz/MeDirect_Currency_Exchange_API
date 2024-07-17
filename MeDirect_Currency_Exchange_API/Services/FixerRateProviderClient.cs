@@ -23,21 +23,21 @@ namespace MeDirect_Currency_Exchange_API.Services {
                 response = await _httpClient.GetAsync(url);
             }
             catch(Exception ex) {
-                Log.Error(ex, "Error occurred while sending request to Fixer API for currency {Currency}", currency);
-                throw new ApiException(1000, "Error on requesting");
+                Log.Error(ex, "Error occurred while sending request to the Provider for the currency {Currency}", currency);
+                throw new ApiException(1000, "Error on requesting", "Internal Error");
             }
             if(!response.IsSuccessStatusCode) {
-                Log.Warning("Received unsuccessful status code {StatusCode} from Fixer API for currency {Currency}", response.StatusCode, currency);
-                throw new ApiException(1000, "Error on requesting");
+                Log.Warning("Received unsuccessful status code {StatusCode} from the Provider API for currency {Currency}", response.StatusCode, currency);
+                throw new ApiException(1000, "Error on requesting", "API Error");
             }
             var content = await response.Content.ReadAsStringAsync();
             Log.Debug("Received response content: {Content}", content);
             FixerResponse result = JsonConvert.DeserializeObject<FixerResponse>(content);
 
             if(result == null)
-                throw new ApiException(1001, "Error Obtaining result");
+                throw new ApiException(1001, "Error Obtaining result", "API Error");
             if(!result.Success)
-                throw new ApiException(result.Error.Code, result.Error.Info);
+                throw new ApiException(result.Error.Code, result.Error.type, "API Error");
 
             var rate = new CurrencyRate {
                 BaseCurrency = currency,
@@ -57,7 +57,7 @@ namespace MeDirect_Currency_Exchange_API.Services {
         }
         private class ErrorDetails {
             public int Code { get; set; }
-            public string Info { get; set; }
+            public string type { get; set; }
         }
     }
 }

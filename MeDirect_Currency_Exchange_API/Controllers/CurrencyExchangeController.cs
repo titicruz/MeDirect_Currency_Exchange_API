@@ -60,7 +60,7 @@ namespace MeDirect_Currency_Exchange_API.Controllers {
             }
             catch(ApiException ex) {
                 // Handle known API exceptions
-                return StatusCode(ex.ErrorCode, new { message = $"code:{ex.ErrorCode} message:{ex.Message}" });
+                return StatusCode(500, ex.ErrorResponse);
             }
             catch(Exception ex) {
                 // Handle other unexpected exceptions

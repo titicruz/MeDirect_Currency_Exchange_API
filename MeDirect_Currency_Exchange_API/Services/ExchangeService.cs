@@ -10,15 +10,21 @@ namespace MeDirect_Currency_Exchange_API.Services {
         private IRateProviderClient _rateClient;
         private ITradeRepository _tradeRepository;
         private readonly ICacheService _cacheService;
-        public ExchangeService(IRateProviderClient rateProviderClient, ICacheService cacheService, ITradeRepository tradeRepository) {
+        private IClientRepository _clientRepository;
+        public ExchangeService(IRateProviderClient rateProviderClient, ICacheService cacheService, ITradeRepository tradeRepository, IClientRepository clientRepository) {
             _rateClient = rateProviderClient;
             _cacheService = cacheService;
             _tradeRepository = tradeRepository;
+            _clientRepository = clientRepository;
         }
 
         public async Task<Trade> CreateTradeAsync(TradeRequest tradeRequest) {
             Log.Information("Received request to create trade: {@TradeRequest}", tradeRequest);
-
+            var client = await _clientRepository.GetClientByIdAsync(tradeRequest.ID_Client);
+            if (client == null) {
+                Log.Warning("Client {ClientId} doesn' excists.", tradeRequest.ID_Client);
+                throw new ApiException(404, "The Client doesn't exists", "Not found");
+            }
             var tradesInLastHour = await _tradeRepository.GetTradesForClientBetweenDatesAsync(
                 tradeRequest.ID_Client,
                 DateTime.UtcNow.AddHours(-1),
@@ -27,12 +33,12 @@ namespace MeDirect_Currency_Exchange_API.Services {
 
             if(tradesInLastHour.Count() >= 10) {
                 Log.Warning("Client {ClientId} has reached the maximum limit of 10 trades per hour.", tradeRequest.ID_Client);
-                throw new ApiException(429, "Reached the maximum limit of 10 trades per hour.");
+                throw new ApiException(429, "Reached the maximum limit of 10 trades per hour.","Limit Error");
             }
             var rate = await GetRateAsync(tradeRequest.FromCurrency, tradeRequest.ToCurrency);
             if(rate == null) {
                 Log.Warning("Exchange rate not found for {FromCurrency} to {ToCurrency}", tradeRequest.FromCurrency, tradeRequest.ToCurrency);
-                throw new ApiException(404, "Exchange rate not found");
+                throw new ApiException(404, "Exchange rate not found", "Not Found");
             }
             var trade = new Trade {
                 ID_Client = tradeRequest.ID_Client,
