@@ -14,8 +14,8 @@
         /// <typeparam name="T">The type of the item.</typeparam>
         /// <param name="key">The cache key.</param>
         /// <param name="item">The item to cache.</param>
-        /// <param name="expiration">The expiration time for the cache item.</param>
-        void Set<T>(string key, T item, TimeSpan expiration);
+        /// <param name="expiration">The expiration time for the cache item.Null for no expiration time.</param>
+        void Set<T>(string key, T item, TimeSpan? expiration);
 
         /// <summary>
         /// Removes an item from the cache.

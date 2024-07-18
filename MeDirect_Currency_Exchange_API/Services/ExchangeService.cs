@@ -27,8 +27,8 @@ namespace MeDirect_Currency_Exchange_API.Services {
 
         public async Task<Trade> CreateTradeAsync(TradeRequest tradeRequest) {
             _logger.LogInformation("Received request to create trade: {@TradeRequest}", tradeRequest);
-            var client = await _clientRepository.GetClientByIdAsync(tradeRequest.ID_Client);
-            if(client == null) {
+            var client = await _clientRepository.ClientExistsAsync(tradeRequest.ID_Client);
+            if(!client) {
                 _logger.LogWarning("Client {ClientId} doesn't exists.", tradeRequest.ID_Client);
                 throw new ApiException(404, "The Client doesn't exists", "Not found");
             }

@@ -11,8 +11,14 @@ namespace MeDirect_Currency_Exchange_API.Interfaces {
         /// <summary>
         /// Gets Client by ID.
         /// </summary>
+        /// </summary>
         /// <param name="id_Client">Client ID</param>
         Task<Client?> GetClientByIdAsync(int id_Client);
+        /// <summary>
+        /// Validates if client exists by ID.
+        /// </summary>
+        /// <param name="id_Client">Client ID</param>
+        Task<bool> ClientExistsAsync(int id_Client);
         /// <summary>
         /// Gets All Clients.
         /// </summary>

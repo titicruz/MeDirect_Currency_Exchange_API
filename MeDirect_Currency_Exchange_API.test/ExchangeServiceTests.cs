@@ -48,7 +48,7 @@ namespace MeDirect_Currency_Exchange_API.test {
             // Arrange
             var tradeRequest = new TradeRequest { ID_Client = 1, FromCurrency = "USD", ToCurrency = "EUR", Amount = 100 };
 
-            _mockClientRepository.Setup(repo => repo.GetClientByIdAsync(It.IsAny<int>())).ReturnsAsync((Client?)null);
+            _mockClientRepository.Setup(repo => repo.ClientExistsAsync(It.IsAny<int>())).ReturnsAsync(false);
 
             // Act & Assert
             var exception = await Assert.ThrowsAsync<ApiException>(() => _exchangeService.CreateTradeAsync(tradeRequest));

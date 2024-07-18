@@ -12,7 +12,7 @@ namespace MeDirect_Currency_Exchange_API.Services {
             _memoryCache.TryGetValue(key, out T item);
             return item;
         }
-        public void Set<T>(string key, T item, TimeSpan expiration) {
+        public void Set<T>(string key, T item, TimeSpan? expiration) {
             var cacheEntryOptions = new MemoryCacheEntryOptions {
                 AbsoluteExpirationRelativeToNow = expiration
             };
