@@ -23,12 +23,12 @@ namespace MeDirect_Currency_Exchange_API.Data.Repositories {
 
         public async Task<bool> ClientExistsAsync(int id_Client) {
             string cacheKey = $"CExists_{id_Client}";
-            bool? exists = _cachService.Get<bool>(cacheKey);
+            bool? exists = _cachService.Get<bool?>(cacheKey);
             if(exists != null)
                 return exists.Value;
             exists = await _context.Clients.AnyAsync(c => c.ID == id_Client);
             if (exists.Value)
-                _cachService.Set<bool>(cacheKey, exists.Value,null);
+                _cachService.Set<bool?>(cacheKey, exists.Value,null);
             return exists.Value;
         }
         public async Task<Client?> GetClientByIdAsync(int id_Client) {
