@@ -1,15 +1,21 @@
-﻿namespace MeDirect_Currency_Exchange_API.Models.DTOs {
-    public class ErrorResponse {
+﻿using System.Text.Json.Serialization;
 
-        public string type {  get; set; }
-        public string title { get; set; }
-        public int status { get; set; }
+namespace MeDirect_Currency_Exchange_API.Models.DTOs {
+    public class ErrorResponse {
+        [JsonPropertyName("type")]
+        public string Type {  get; set; }
+        [JsonPropertyName("title")]
+        public string Title { get; set; }
+        [JsonPropertyName("status")]
+        public int Status { get; set; }
+        [JsonPropertyName("Errors")]
         public Dictionary<string, List<string>>? Errors { get; set; }
+        [JsonPropertyName("TraceId")]
         public string? TraceId { get; set; }
-        public ErrorResponse(int statusCode, string Title,string Type = "Error", Dictionary<string, List<string>>? errors = null, string? traceId = null) {
-            type = Type;
-            status = statusCode;
-            title = Title;
+        public ErrorResponse(int statusCode, string title,string type = "Error", Dictionary<string, List<string>>? errors = null, string? traceId = null) {
+            Type = type;
+            Status = statusCode;
+            Title = title;
             Errors = errors;
             TraceId = traceId;
         }
