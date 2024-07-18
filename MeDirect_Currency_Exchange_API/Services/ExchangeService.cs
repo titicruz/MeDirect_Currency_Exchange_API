@@ -32,12 +32,20 @@ namespace MeDirect_Currency_Exchange_API.Services {
                 _logger.LogWarning("Client {ClientId} doesn't exists.", tradeRequest.ID_Client);
                 throw new ApiException(404, "The Client doesn't exists", "Not found");
             }
-            var tradesInLastHour = await _tradeRepository.GetCountTradesForClientBetweenDatesAsync(
-                tradeRequest.ID_Client,
-                DateTime.UtcNow.AddHours(_hourLimit * -1),
-                null
-            );
-
+            var tradesInLastHour = 0;
+            var cacheKey = $"CTrades_{tradeRequest.ID_Client}";
+            List<DateTime> cachedTrades = _cacheService.Get<List<DateTime>>(cacheKey);
+            if (cachedTrades != null) {
+                cachedTrades.RemoveAll(dt => dt < DateTime.UtcNow.AddHours(_hourLimit * -1));
+                tradesInLastHour = cachedTrades.Count;
+            } else {
+                cachedTrades = new List<DateTime>();
+                tradesInLastHour = await _tradeRepository.GetCountTradesForClientBetweenDatesAsync(
+                    tradeRequest.ID_Client,
+                    DateTime.UtcNow.AddHours(_hourLimit * -1),
+                    null
+                );
+            }
             if(tradesInLastHour >= _tradeLimit) {
                 _logger.LogWarning("Client {ClientId} has reached the maximum limit of 10 trades per hour.", tradeRequest.ID_Client);
                 throw new ApiException(429, "Reached the maximum limit of 10 trades per hour.", "Limit Error");
@@ -59,6 +67,8 @@ namespace MeDirect_Currency_Exchange_API.Services {
             // Calculate exchanged amount
             trade.ExchangedAmount = trade.Amount * trade.Rate;
             await _tradeRepository.AddTradeAsync(trade);
+            cachedTrades.Add(trade.Dt_Create);
+            _cacheService.Set<List<DateTime>>(cacheKey, cachedTrades, null);
             _logger.LogInformation("Trade created successfully: {@Trade}", trade);
             return trade;
         }
