@@ -1,5 +1,4 @@
-﻿using MeDirect_Currency_Exchange_API.Data.Models;
-using MeDirect_Currency_Exchange_API.Exceptions;
+﻿using MeDirect_Currency_Exchange_API.Exceptions;
 using MeDirect_Currency_Exchange_API.Interfaces;
 using MeDirect_Currency_Exchange_API.Models;
 using MeDirect_Currency_Exchange_API.Models.DTOs;
@@ -75,12 +74,11 @@ namespace MeDirect_Currency_Exchange_API.test {
         [MemberData(nameof(GetTradeRequests))]
         public async Task CreateTradeAsync_ClientExceedsTradeLimit_ThrowsApiException(TradeRequest tradeRequest) {
             // Arrange
-            var clientId = tradeRequest.ID_Client;
-            _mockClientRepository.Setup(repo => repo.GetClientByIdAsync(clientId))
-                .ReturnsAsync(new Client { ID = clientId });
+            var id_Client = tradeRequest.ID_Client;
+            _mockClientRepository.Setup(repo => repo.ClientExistsAsync(id_Client)).ReturnsAsync(true);
 
-            _mockTradeRepository.Setup(repo => repo.GetCountTradesForClientBetweenDatesAsync(clientId, It.IsAny<DateTime>(), null))
-                .ReturnsAsync(clientId >= 10 ? 10 : clientId); // Ensure the limit is reached at the 10th client
+            _mockTradeRepository.Setup(repo => repo.GetCountTradesForClientBetweenDatesAsync(id_Client, It.IsAny<DateTime>(), null))
+                .ReturnsAsync(id_Client >= 10 ? 10 : id_Client); // test the limit is reached for the 10th client
             _mockRateProviderClient.Setup(x => x.GetRateAsync(tradeRequest.FromCurrency)).Throws(new ApiException(404, "", ""));
             _mockRateProviderClient.Setup(provider => provider.GetRateAsync(tradeRequest.FromCurrency))
                 .ReturnsAsync(new CurrencyRate {
@@ -90,7 +88,7 @@ namespace MeDirect_Currency_Exchange_API.test {
                 });
 
             // Act & Assert
-            if(clientId >= 10) {
+            if(id_Client >= 10) {
                 var exception = await Assert.ThrowsAsync<ApiException>(() => _exchangeService.CreateTradeAsync(tradeRequest));
                 Assert.Equal(429, exception.ErrorResponse.Status);
                 Assert.Equal("Reached the maximum limit of 10 trades per hour.", exception.Message);

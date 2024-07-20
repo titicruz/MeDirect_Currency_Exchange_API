@@ -20,7 +20,7 @@ namespace MeDirect_Currency_Exchange_API.Controllers {
             var client = new Client {
                 ID = clientRequest.ID,
                 Name = clientRequest.Name,
-                DT_Create = clientRequest.DT_Create
+                DT_Create = DateTime.Now
             };
             await _clientRepository.AddClientAsync(client);
             _logger.LogInformation($"Client name:{clientRequest.Name} added!");

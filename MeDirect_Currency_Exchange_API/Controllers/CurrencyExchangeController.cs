@@ -19,6 +19,9 @@ namespace MeDirect_Currency_Exchange_API.Controllers {
             if(string.IsNullOrEmpty(fromCurrency) || string.IsNullOrEmpty(toCurrency)) {
                 return BadRequest("Both 'fromCurrency' and 'toCurrency' query parameters are required.");
             }
+            if(fromCurrency.Length != toCurrency.Length && fromCurrency.Length != 3) {
+                return BadRequest("Both 'fromCurrency' and 'toCurrency' query parameters must have 3 characters.");
+            }
 
             try {
                 var rate = await _exchangeService.GetRateAsync(fromCurrency, toCurrency);
